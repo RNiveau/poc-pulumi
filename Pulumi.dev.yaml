@@ -1,0 +1,5 @@
+encryptionsalt: v1:kPyJdfoDLNc=:v1:Qw5QJVoAtunYq7LN:RYSRZaPqQyqaQxtrTWjYHRKZfFII/g==
+config:
+  aws:region: eu-west-1
+  poc-pulumi:rds_password:
+    secure: v1:C+05W3+KekIwpOtv:JRKScnYvHekdLII5vUtDViW/QsA0bWQKLpc=
