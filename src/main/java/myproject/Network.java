@@ -4,13 +4,9 @@ import com.pulumi.Context;
 import com.pulumi.aws.ec2.*;
 import com.pulumi.aws.ec2.inputs.DefaultSecurityGroupEgressArgs;
 import com.pulumi.aws.ec2.inputs.DefaultSecurityGroupIngressArgs;
-import com.pulumi.aws.ec2.inputs.SecurityGroupEgressArgs;
-import com.pulumi.aws.ec2.inputs.SecurityGroupIngressArgs;
-import com.pulumi.aws.vpc.SecurityGroupIngressRuleArgs;
 import com.pulumi.core.Output;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class Network {
@@ -18,7 +14,8 @@ public class Network {
     private Vpc vpc;
     private Subnet subnetRdsA;
     private Subnet subnetRdsB;
-    private Subnet subnetEks;
+    private Subnet subnetEksA;
+    private Subnet subnetEksB;
 
     private Subnet subnetEc2;
 
@@ -107,30 +104,42 @@ public class Network {
                 .cidrBlock("10.0.2.0/24")
                 .availabilityZone("eu-west-1b")
                 .build());
-        subnetEks = new Subnet("pulumi-subnet-eks", SubnetArgs.builder()
-                .vpcId(vpc.id())
-                .cidrBlock("10.0.1.0/24")
-                .build());
         subnetEc2 = new Subnet("pulumi-subnet-ec2", SubnetArgs.builder()
                 .vpcId(vpc.id())
                 .cidrBlock("10.0.3.0/24")
                 .build());
-        subnetsId = Output.all(subnetEks.id(), subnetRdsB.id(), subnetRdsA.id(), subnetEc2.id());
+        subnetEksA = new Subnet("pulumi-subnet-eks-a", SubnetArgs.builder()
+                .vpcId(vpc.id())
+                .cidrBlock("10.0.1.0/24")
+                .availabilityZone("eu-west-1a")
+                .mapPublicIpOnLaunch(true)
+                .build());
+        subnetEksB = new Subnet("pulumi-subnet-eks-b", SubnetArgs.builder()
+                .vpcId(vpc.id())
+                .cidrBlock("10.0.4.0/24")
+                .availabilityZone("eu-west-1b")
+                .mapPublicIpOnLaunch(true)
+                .build());
+        subnetsId = Output.all(subnetEksA.id(), subnetEksB.id(), subnetRdsB.id(), subnetRdsA.id(), subnetEc2.id());
         ctx.export("subnet_rds_a_id", subnetRdsA.id());
         ctx.export("subnet_rds_b_id", subnetRdsB.id());
-        ctx.export("subnet_eks_id", subnetEks.id());
+        ctx.export("subnet_eks_a_id", subnetEksA.id());
+        ctx.export("subnet_eks_b_id", subnetEksB.id());
         ctx.export("subnet_ec2_id", subnetEc2.id());
     }
 
-    public List<Subnet> subnetsRds() {
-        return Arrays.asList(subnetRdsA, subnetRdsB);
+    public Output<List<String>> subnetsEksId() {
+        return Output.all(subnetEksA.id(), subnetEksB.id());
     }
-
     public Output<List<String>> subnetsRdsId() {
         return Output.all(subnetRdsA.id(), subnetRdsB.id());
     }
 
     public Subnet subnetEc2() {
         return subnetEc2;
+    }
+
+    public Vpc vpc() {
+        return vpc;
     }
 }
